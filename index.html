@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hotel Sales Dashboard - Glassmorphism</title>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+margin:0;
+padding:30px;
+background: linear-gradient(135deg,#dff6ff,#c7e9ff,#e8f9ff);
+min-height:100vh;
+}
+
+h1{
+text-align:center;
+margin-bottom:25px;
+color:#0a3d62;
+}
+
+#uploadBox{
+text-align:center;
+margin-bottom:30px;
+}
+
+/* Dashboard Layout */
+.dashboard{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:25px;
+}
+
+/* Glassmorphism Chart Cards */
+.chart{
+width:40%;
+min-width:350px;
+padding:20px;
+border-radius:16px;
+
+background: rgba(255,255,255,0.25);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+
+border:1px solid rgba(255,255,255,0.4);
+box-shadow:0 8px 32px rgba(31,38,135,0.15);
+}
+
+/* Make scatter chart slightly wider */
+#scatter{
+width:82%;
+}
+
+input[type="file"]{
+padding:10px 15px;
+border-radius:10px;
+border:none;
+background:white;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Hotel Sales Performance Dashboard</h1>
+
+<div id="uploadBox">
+<input type="file" id="fileInput" accept=".json">
+</div>
+
+<div class="dashboard">
+
+<div id="salesCommission" class="chart"></div>
+<div id="bookings" class="chart"></div>
+<div id="avgCommission" class="chart"></div>
+<div id="commissionShare" class="chart"></div>
+<div id="scatter" class="chart"></div>
+
+</div>
+
+<script>
+
+document.getElementById('fileInput').addEventListener('change', function(event){
+
+const file = event.target.files[0];
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+const data = JSON.parse(e.target.result);
+
+generateDashboard(data);
+
+};
+
+reader.readAsText(file);
+
+});
+
+
+function generateDashboard(data){
+
+const hotels = data.map(d => d["Hotel Name"]);
+const bookings = data.map(d => d["Total Bookings May"]);
+const sales = data.map(d => d["Total Sales (INR) May"]);
+const commission = data.map(d => d["Commission (INR) May"]);
+const avgCommission = data.map(d => d["AVG. Commission (INR) May"]);
+
+
+createSalesCommissionChart(hotels, sales, commission);
+createBookingsChart(hotels, bookings);
+createAvgCommissionChart(hotels, avgCommission);
+createCommissionShareChart(hotels, commission);
+createScatterChart(bookings, sales, hotels);
+
+}
+
+
+function createSalesCommissionChart(hotels, sales, commission){
+
+const trace1 = {
+x: hotels,
+y: sales,
+name: 'Total Sales',
+type: 'bar'
+};
+
+const trace2 = {
+x: hotels,
+y: commission,
+name: 'Commission',
+type: 'bar'
+};
+
+Plotly.newPlot('salesCommission',[trace1,trace2],{
+title:'Sales vs Commission',
+barmode:'group'
+});
+
+}
+
+
+function createBookingsChart(hotels, bookings){
+
+const trace = {
+x: bookings,
+y: hotels,
+type:'bar',
+orientation:'h'
+};
+
+Plotly.newPlot('bookings',[trace],{
+title:'Bookings by Hotel'
+});
+
+}
+
+
+function createAvgCommissionChart(hotels, avgCommission){
+
+const trace = {
+x: hotels,
+y: avgCommission,
+type:'bar'
+};
+
+Plotly.newPlot('avgCommission',[trace],{
+title:'Average Commission per Booking'
+});
+
+}
+
+
+function createCommissionShareChart(hotels, commission){
+
+const trace = {
+labels: hotels,
+values: commission,
+type:'pie'
+};
+
+Plotly.newPlot('commissionShare',[trace],{
+title:'Commission Contribution Share'
+});
+
+}
+
+
+function createScatterChart(bookings, sales, hotels){
+
+const trace = {
+x: bookings,
+y: sales,
+mode:'markers',
+type:'scatter',
+text: hotels,
+marker:{
+size:12
+}
+};
+
+Plotly.newPlot('scatter',[trace],{
+title:'Bookings vs Sales Correlation',
+xaxis:{title:'Bookings'},
+yaxis:{title:'Sales (INR)'}
+});
+
+}
+
+</script>
+
+</body>
+</html>
